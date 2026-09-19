@@ -2,13 +2,21 @@
 
 One decision every Monad block. A TypeSafe Jev model watches the Kuru MON-USDC order book and answers buy or sell every ~300 ms. Every block posts a real post-only limit order on that side, one tick inside the touch, replacing the last one. Fills happen when a taker hits it, so the bot earns the spread instead of paying it. A small server streams every block to the dashboard.
 
+This eumemic fork stays close to upstream and defaults to dry-run research. See `TRADE_DESK.md` for desk notes (block-paced on-chain MM, not equity HFT; Alpaca paper is a separate track).
+
 ## Run
 
     cp .env.example .env
     bun install
-    bun run start
+    MODEL=mock bun run start
 
-With no `PRIVATE_KEY` it dry-runs: real book, real decisions, simulated fills. Set `MODEL=jev` and `TYPESAFE_AI_API_KEY` to use Jev; the default `mock` is a momentum heuristic stand-in.
+Three modes (see `TRADE_DESK.md`):
+
+1. Mock dry-run (default): `MODEL=mock`, no TypeSafe key, no `PRIVATE_KEY`. Real book, simulated fills.
+2. Jev dry-run: `MODEL=jev` plus `TYPESAFE_AI_API_KEY` in a local `.env` only. Still no `PRIVATE_KEY`. Do not commit that key or paste it into a PR.
+3. Live: `ALLOW_LIVE=true` and a `PRIVATE_KEY`, with `DRY_RUN` not `true`. Opt-in, dangerous, out of scope for this fork's default.
+
+`PRIVATE_KEY` is ignored unless mode 3 is fully opted in.
 
 ## Endpoints
 

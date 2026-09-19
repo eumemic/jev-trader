@@ -8,8 +8,10 @@ import OrderBookAbi from "@kuru-labs/kuru-sdk/abi/OrderBook.json";
 
 // A throwaway key, and never a dry run: this script signs (locally) but never sends. Set before
 // src/config is imported, so these imports must stay dynamic (static ones are hoisted above this).
+// ALLOW_LIVE is required for config to honor PRIVATE_KEY; this script still does not broadcast.
 process.env.PRIVATE_KEY = ethers.Wallet.createRandom().privateKey;
 process.env.DRY_RUN = "false";
+process.env.ALLOW_LIVE = "true";
 const { config } = await import("../src/config");
 const { Market } = await import("../src/market");
 
