@@ -36,7 +36,7 @@ Required for mode 1 (mock dry-run smoke): nothing. Defaults are dry-run + `MODEL
 | `ALLOW_LIVE` | unset / `false` | Must be the exact string `true` to honor `PRIVATE_KEY`. |
 | `PRIVATE_KEY` | unset | Ignored unless live is fully opted in. |
 | `MODEL` | `mock` | `mock` is a local momentum heuristic (mode 1). `jev` is mode 2. |
-| `TYPESAFE_AI_API_KEY` | unset | Local `.env` only, for mode 2. Never commit or paste into a PR. |
+| `TYPESAFE_AI_API_KEY` / `TYPESAFE_API_KEY` | unset | Operator env only, for mode 2. Either name works. Never commit or paste into a PR. |
 | `JEV_MODEL_ID` | `jev-latest` | Used when `MODEL=jev`. |
 | `RPC_URL` / `READ_RPC_URL` | `https://rpc.monad.xyz` | Public Monad RPC. Fine for dry-run. |
 | `WS_URL` | unset unless in `.env` | Optional newHeads. Polling always runs. |
@@ -59,11 +59,17 @@ MODEL=mock bun run start
 
 Leave `PRIVATE_KEY` unset. Confirm `GET /` reports `"dryRun": true`. Block events should appear on `GET /events` (SSE) and in stdout about every 300 ms.
 
-Mode 2, Jev dry-run, on the operator machine only: copy `.env.example` to `.env`, set `MODEL=jev`, and put `TYPESAFE_AI_API_KEY` in that local file. Keep `PRIVATE_KEY` empty and `ALLOW_LIVE` not `true`. Then `bun run start`. The key stays in `.env` (gitignored). Do not export it in the PR or a ticket.
+Bounded dry-run script (no server, forces `DRY_RUN=true`, drops `PRIVATE_KEY` and `ALLOW_LIVE`, exits cleanly). Prints live `getL2Book` mid/bid/ask plus the decision each block:
+
+```
+MODEL=mock bun run dry-run-jev -- --blocks 15
+```
+
+Mode 2, Jev dry-run, on the operator machine only: copy `.env.example` to `.env`, set `MODEL=jev`, and put `TYPESAFE_AI_API_KEY` or `TYPESAFE_API_KEY` in that local file. Keep `PRIVATE_KEY` empty and `ALLOW_LIVE` not `true`. Then `bun run dry-run-jev` (or `bun run start`). The key stays in `.env` (gitignored). Do not export it in the PR or a ticket. Missing key exits with a clear error.
 
 Mode 3 is live trading. Out of scope for this PR. See the checklist below only if a later change deliberately opts in.
 
-`bun test` covers the live/dry-run gate. `bun run scripts/dry-encode.ts` signs a throwaway tx locally and never broadcasts.
+`bun test` covers the live/dry-run gate and the missing-TypeSafe-key path on `scripts/dry-run-jev.ts`. `bun run scripts/dry-encode.ts` signs a throwaway tx locally and never broadcasts.
 
 ## Live checklist (out of scope for this PR)
 
