@@ -13,10 +13,16 @@ This eumemic fork stays close to upstream and defaults to dry-run research. See 
 Three modes (see `TRADE_DESK.md`):
 
 1. Mock dry-run (default): `MODEL=mock`, no TypeSafe key, no `PRIVATE_KEY`. Real book, simulated fills.
-2. Jev dry-run: `MODEL=jev` plus `TYPESAFE_AI_API_KEY` in a local `.env` only. Still no `PRIVATE_KEY`. Do not commit that key or paste it into a PR.
+2. Jev dry-run: `MODEL=jev` plus `TYPESAFE_AI_API_KEY` or `TYPESAFE_API_KEY` in a local `.env` only (operator env, not this repo). Still no `PRIVATE_KEY`. Do not commit that key or paste it into a PR.
 3. Live: `ALLOW_LIVE=true` and a `PRIVATE_KEY`, with `DRY_RUN` not `true`. Opt-in, dangerous, out of scope for this fork's default.
 
 `PRIVATE_KEY` is ignored unless mode 3 is fully opted in.
+
+Bounded local dry-run (no HTTP server, no wallet, exits after N blocks or a timeout). Uses the live Kuru `getL2Book` path and prints mid/bid/ask plus the decision each block:
+
+    MODEL=mock bun run dry-run-jev -- --blocks 15
+
+Operator Jev dry-run: set `MODEL=jev` and put `TYPESAFE_AI_API_KEY` or `TYPESAFE_API_KEY` in the local environment (gitignored `.env`). Do not commit the key. Then `bun run dry-run-jev`. Defaults: 120 blocks or 45 seconds, whichever first.
 
 ## Endpoints
 
