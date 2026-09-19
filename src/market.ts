@@ -67,7 +67,7 @@ interface Pending { block: number; quote: Quote; gasLimit: ethers.BigNumber }
 /** Kuru MON-USDC market: read the book, post one limit order per block, confirm asynchronously. */
 export class Market {
   readonly provider = new ethers.providers.StaticJsonRpcProvider(config.rpcUrl, config.chainId);
-  /** null in a dry run (no key, or DRY_RUN=true): nothing is signed, nothing is sent. */
+  /** null in a dry run (default): nothing is signed, nothing is sent. Live needs ALLOW_LIVE=true and a key. */
   readonly wallet = config.dryRun ? null : new ethers.Wallet(config.privateKey!, this.provider);
   params!: Kuru.MarketParams; // public so scripts can build txs without init()
   /** Margin account balances, refreshed every `config.refreshBlocks`. Limit orders draw from here. */

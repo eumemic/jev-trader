@@ -6,6 +6,13 @@ import { Trader } from "./trader";
 import { log10 } from "./book";
 import { startServer } from "./server";
 
+if (config.ignoredPrivateKey) {
+  console.warn("PRIVATE_KEY is set but ignored. Live trading requires ALLOW_LIVE=true and DRY_RUN not true.");
+}
+if (!config.dryRun) {
+  console.warn("LIVE TRADING ENABLED. Real orders will be sent from this wallet. This is dangerous.");
+}
+
 const market = new Market();
 await market.init();
 const model = createModel();
