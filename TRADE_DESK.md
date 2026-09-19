@@ -12,30 +12,31 @@ The upstream demo is built to send real orders from a real wallet. This fork def
 
 Alpaca paper (or any equity/paper broker sleeve) is a separate track. Do not wire it into this process.
 
-## Dry-run vs live
+## Three modes
 
-| Mode | How you get it | What happens |
-| --- | --- | --- |
-| Dry-run (default) | No `PRIVATE_KEY`, or `DRY_RUN=true`, or `ALLOW_LIVE` not `true` | Real book + real decisions. Quotes are `status: "sim"`. Fills only when a real print crosses the resting sim price. No wallet required. |
-| Live (dangerous, opt-in) | `ALLOW_LIVE=true` AND a `PRIVATE_KEY` AND `DRY_RUN` not `true` | Signs and sends a real `batchUpdate` every block. Spends gas and margin. |
+1. **Mock dry-run (default, what this PR smokes).** `MODEL=mock` (or unset). No TypeSafe key. No `PRIVATE_KEY`. Real book, mock decisions, simulated fills. This is the first-run path.
 
-`PRIVATE_KEY` alone does not go live. A leftover key in the environment is ignored unless you also set `ALLOW_LIVE=true`.
+2. **Jev dry-run (operator local only).** `MODEL=jev` plus `TYPESAFE_AI_API_KEY` in a local `.env` (gitignored). Still no `PRIVATE_KEY`. Still `DRY_RUN=true` / `ALLOW_LIVE` not `true`. Real book, real Jev decisions, simulated fills. Do not put that key in the repo, in a PR, or in chat. Cloud agents and CI should not expect it.
 
-Do not commit keys, funded wallets, or a `.env` with secrets.
+3. **Live (out of scope for this PR).** Only if `ALLOW_LIVE=true` AND a `PRIVATE_KEY` AND `DRY_RUN` is not `true`. Signs and sends a real `batchUpdate` every block. Spends gas and margin. Do not enable this here.
+
+`PRIVATE_KEY` alone does not go live. A leftover wallet key is ignored unless you also set `ALLOW_LIVE=true`.
+
+Do not commit wallet keys, TypeSafe keys, funded wallets, or a `.env` with secrets.
 
 ## Env vars
 
 Copy `.env.example` to `.env`. Bun loads `.env` automatically.
 
-Required for a first smoke test: nothing. Defaults are dry-run + `MODEL=mock`.
+Required for mode 1 (mock dry-run smoke): nothing. Defaults are dry-run + `MODEL=mock`.
 
 | Var | Default | Notes |
 | --- | --- | --- |
 | `DRY_RUN` | `true` in `.env.example` | If `true`, live is vetoed even with a key and `ALLOW_LIVE`. |
 | `ALLOW_LIVE` | unset / `false` | Must be the exact string `true` to honor `PRIVATE_KEY`. |
 | `PRIVATE_KEY` | unset | Ignored unless live is fully opted in. |
-| `MODEL` | `mock` | `mock` is a local momentum heuristic. No API key. |
-| `TYPESAFE_AI_API_KEY` | unset | Needed only for `MODEL=jev`. |
+| `MODEL` | `mock` | `mock` is a local momentum heuristic (mode 1). `jev` is mode 2. |
+| `TYPESAFE_AI_API_KEY` | unset | Local `.env` only, for mode 2. Never commit or paste into a PR. |
 | `JEV_MODEL_ID` | `jev-latest` | Used when `MODEL=jev`. |
 | `RPC_URL` / `READ_RPC_URL` | `https://rpc.monad.xyz` | Public Monad RPC. Fine for dry-run. |
 | `WS_URL` | unset unless in `.env` | Optional newHeads. Polling always runs. |
@@ -48,6 +49,8 @@ See `.env.example` for margin, gas, and bankroll knobs. Those matter for live on
 
 ## How to run (Bun)
 
+Mode 1, mock dry-run (no TypeSafe key, no wallet key):
+
 ```
 cp .env.example .env
 bun install
@@ -56,17 +59,15 @@ MODEL=mock bun run start
 
 Leave `PRIVATE_KEY` unset. Confirm `GET /` reports `"dryRun": true`. Block events should appear on `GET /events` (SSE) and in stdout about every 300 ms.
 
-Switch to Jev when a TypeSafe key exists (still dry-run unless you also opt into live):
+Mode 2, Jev dry-run, on the operator machine only: copy `.env.example` to `.env`, set `MODEL=jev`, and put `TYPESAFE_AI_API_KEY` in that local file. Keep `PRIVATE_KEY` empty and `ALLOW_LIVE` not `true`. Then `bun run start`. The key stays in `.env` (gitignored). Do not export it in the PR or a ticket.
 
-```
-MODEL=jev TYPESAFE_AI_API_KEY=... bun run start
-```
+Mode 3 is live trading. Out of scope for this PR. See the checklist below only if a later change deliberately opts in.
 
 `bun test` covers the live/dry-run gate. `bun run scripts/dry-encode.ts` signs a throwaway tx locally and never broadcasts.
 
-## Live checklist (do not do this by default)
+## Live checklist (out of scope for this PR)
 
-Only if someone with keys explicitly wants real orders:
+Do not do this in the research default. Only if a later change explicitly wants real orders:
 
 1. Funded Monad wallet and Kuru margin, not committed anywhere.
 2. `ALLOW_LIVE=true`

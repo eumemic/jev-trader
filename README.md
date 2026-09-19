@@ -10,9 +10,13 @@ This eumemic fork stays close to upstream and defaults to dry-run research. See 
     bun install
     MODEL=mock bun run start
 
-Default is dry-run: no `PRIVATE_KEY` required, real book, real decisions, simulated fills. `PRIVATE_KEY` is ignored unless `ALLOW_LIVE=true` and `DRY_RUN` is not `true`. Live trading is opt-in and dangerous.
+Three modes (see `TRADE_DESK.md`):
 
-`MODEL=mock` (default) needs no API key. Set `MODEL=jev` and `TYPESAFE_AI_API_KEY` to use Jev.
+1. Mock dry-run (default): `MODEL=mock`, no TypeSafe key, no `PRIVATE_KEY`. Real book, simulated fills.
+2. Jev dry-run: `MODEL=jev` plus `TYPESAFE_AI_API_KEY` in a local `.env` only. Still no `PRIVATE_KEY`. Do not commit that key or paste it into a PR.
+3. Live: `ALLOW_LIVE=true` and a `PRIVATE_KEY`, with `DRY_RUN` not `true`. Opt-in, dangerous, out of scope for this fork's default.
+
+`PRIVATE_KEY` is ignored unless mode 3 is fully opted in.
 
 ## Endpoints
 
